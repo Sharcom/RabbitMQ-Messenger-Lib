@@ -9,15 +9,15 @@
     {
         private readonly IModel channel;
 
-        public Sender(string hostname, List<Queue> queues)
+        public Sender(MessengerConfig config, List<Queue> queues)
         {
-            var factory = new ConnectionFactory { HostName = hostname };           
+            var factory = new ConnectionFactory { HostName = config.HostName,  };           
             IConnection connection = factory.CreateConnection();
             channel = connection.CreateModel();
 
             foreach(Queue queue in queues)
             {
-                channel.QueueDeclare(
+                channel.QueueDeclare(                    
                     queue: queue.Name,
                     durable: queue.Durable,
                     exclusive: queue.Exclusive,
@@ -35,8 +35,6 @@
                 routingKey: queueName,
                 basicProperties: null,
                 body: body);
-
-            Console.WriteLine($"Message published to '{queueName}' queue: {message.Payload}");
         }
     }
 }

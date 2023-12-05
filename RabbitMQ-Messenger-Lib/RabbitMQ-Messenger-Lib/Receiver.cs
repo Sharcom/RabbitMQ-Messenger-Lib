@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace RabbitMQ_Messenger_Lib
+﻿namespace RabbitMQ_Messenger_Lib
 {
     using System.Text;
     using RabbitMQ.Client;
@@ -17,10 +11,10 @@ namespace RabbitMQ_Messenger_Lib
         private readonly IModel channel;
         public List<Queue> Queues { get; private set; }
 
-        public Receiver(string hostname, List<Queue> queues)
+        public Receiver(MessengerConfig config, List<Queue> queues)
         {
             Queues = queues;
-            var factory = new ConnectionFactory { HostName = hostname };
+            var factory = new ConnectionFactory { HostName = config.HostName };
             IConnection connection = factory.CreateConnection();
             channel = connection.CreateModel();
 
@@ -46,10 +40,14 @@ namespace RabbitMQ_Messenger_Lib
 
                 Queue sourceQueue = Queues.Find(queue => queue.Name == ea.RoutingKey);
                 sourceQueue.callbackMethod(this, message);
-
-
-                Console.WriteLine($"Received {message.Payload} on queue '{sourceQueue.Name}'");
             };
+
+            foreach(Queue queue in Queues)
+            {
+                channel.BasicConsume(queue: queue.Name,
+                    autoAck: true,
+                    consumer: consumer);
+            }            
         }
     }
 }
