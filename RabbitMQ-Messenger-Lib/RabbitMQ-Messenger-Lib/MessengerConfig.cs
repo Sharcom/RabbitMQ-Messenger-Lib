@@ -9,5 +9,6 @@ namespace RabbitMQ_Messenger_Lib.Types
     public class MessengerConfig
     {
         public string HostName;
+        public string? Exchange;
     }
 }

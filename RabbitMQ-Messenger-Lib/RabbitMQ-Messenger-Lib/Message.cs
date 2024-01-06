@@ -8,12 +8,14 @@ namespace RabbitMQ_Messenger_Lib.Types
 {
     public class Message
     {
-        public Message(string payload, MessageType type) {
+        public Message(Dictionary<string, object> payload, MessageType type, string origin) {
             Payload = payload;
             Type = type;
+            Origin = origin;
         }
 
-        public string Payload { get; private set; }
+        public Dictionary<string, object> Payload { get; private set; }
         public MessageType Type { get; private set; }
+        public string Origin { get; private set; }
     }
 }

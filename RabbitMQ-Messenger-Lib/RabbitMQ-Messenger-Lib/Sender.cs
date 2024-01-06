@@ -8,14 +8,22 @@
     public class Sender
     {
         private readonly IModel channel;
+        private readonly MessengerConfig config;
 
-        public Sender(MessengerConfig config, List<Queue> queues)
+        public Sender(MessengerConfig _config, List<Queue> queues)
         {
-            var factory = new ConnectionFactory { HostName = config.HostName,  };           
+            ConnectionFactory factory = new ConnectionFactory { HostName = _config.HostName,  };
+            config = _config;
+
             IConnection connection = factory.CreateConnection();
             channel = connection.CreateModel();
 
-            foreach(Queue queue in queues)
+            channel.ExchangeDeclare(
+                exchange: config.Exchange,
+                type: "direct",
+                durable: true);
+
+            foreach (Queue queue in queues)
             {
                 channel.QueueDeclare(                    
                     queue: queue.Name,
@@ -23,6 +31,11 @@
                     exclusive: queue.Exclusive,
                     autoDelete: queue.AutoDelete,
                     arguments: queue.Arguments);
+
+                channel.QueueBind(
+                    queue: queue.Name,
+                    exchange: config.Exchange,
+                    routingKey: queue.Name);
             }            
         }
 
@@ -31,7 +44,7 @@
             byte[] body = Encoding.UTF8.GetBytes(json);
 
             channel.BasicPublish(
-                exchange: string.Empty,
+                exchange: config.Exchange ?? string.Empty,
                 routingKey: queueName,
                 basicProperties: null,
                 body: body);

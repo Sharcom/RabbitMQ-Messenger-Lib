@@ -9,18 +9,28 @@
     public class Receiver
     {
         private readonly IModel channel;
+        private readonly MessengerConfig config;
+
         public List<Queue> Queues { get; private set; }
 
-        public Receiver(MessengerConfig config, List<Queue> queues)
+        public Receiver(MessengerConfig _config, List<Queue> queues)
         {
             Queues = queues;
-            var factory = new ConnectionFactory { HostName = config.HostName };
+            ConnectionFactory factory = new ConnectionFactory { HostName = _config.HostName };
+            config = _config;
+
+
             IConnection connection = factory.CreateConnection();
             channel = connection.CreateModel();
 
+            channel.ExchangeDeclare(
+                exchange: config.Exchange,
+                type: "direct",
+                durable: true);
+
             foreach (Queue queue in queues)
             {
-                if (queue.callbackMethod != null)
+                if (queue.CallbackMethod != null)
                 {
                     channel.QueueDeclare(
                         queue: queue.Name,
@@ -29,7 +39,14 @@
                         autoDelete: queue.AutoDelete,
                         arguments: queue.Arguments);
                 }
+
+                channel.QueueBind(
+                    queue: queue.Name,
+                    exchange: config.Exchange,
+                    routingKey: queue.Name);
             }
+
+            
 
             EventingBasicConsumer consumer = new EventingBasicConsumer(channel);
             consumer.Received += (model, ea) =>
@@ -39,13 +56,19 @@
                 Message message = JsonConvert.DeserializeObject<Message>(json);
 
                 Queue sourceQueue = Queues.Find(queue => queue.Name == ea.RoutingKey);
-                sourceQueue.callbackMethod(this, message);
+
+                if (sourceQueue.CallbackMethod == null)
+                {
+                    throw new ArgumentNullException("The callback method for a receiver queue cannot be null");
+                }
+                sourceQueue.CallbackMethod(this, message);
             };
 
             foreach(Queue queue in Queues)
             {
-                channel.BasicConsume(queue: queue.Name,
-                    autoAck: true,
+                channel.BasicConsume(
+                    queue: queue.Name,
+                    autoAck: queue.AutoAcknowledge,
                     consumer: consumer);
             }            
         }
