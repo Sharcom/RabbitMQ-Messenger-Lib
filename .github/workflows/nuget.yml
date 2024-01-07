@@ -11,7 +11,7 @@ defaults:
 
 jobs:
   publish:
-    name: build, pack & publish
+    name: Build, pack & publish
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -21,7 +21,10 @@ jobs:
         with:
           dotnet-version: 6.0.x
 
-      # Publish
+      - name: Restore
+        run: dotnet restore RabbitMQ-Messenger-Lib/RabbitMQ-Messenger-Lib.csproj
+      - name: Build
+        run: dotnet build RabbitMQ-Messenger-Lib/RabbitMQ-Messenger-Lib.csproj --no-restore --configuration Release
       - name: Package
         run: dotnet pack RabbitMQ-Messenger-Lib\\RabbitMQ-Messenger-Lib.csproj -c Release
       - name: Publish
