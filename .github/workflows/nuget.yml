@@ -24,6 +24,6 @@ jobs:
       - name: Build
         run: dotnet build RabbitMQ-Messenger-Lib/RabbitMQ-Messenger-Lib.csproj --no-restore --configuration Release
       - name: Pack
-        run: dotnet pack RabbitMQ-Messenger-Lib/RabbitMQ-Messenger-Lib.csproj -c Release --include-symbols -o .
+        run: dotnet pack RabbitMQ-Messenger-Lib/RabbitMQ-Messenger-Lib.csproj -c Release -o .
       - name: Publish
         run: dotnet nuget push *.nupkg -k ${{secrets.NUGET_API_KEY}} -s https://api.nuget.org/v3/index.json --skip-duplicate
