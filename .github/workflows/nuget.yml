@@ -1,4 +1,4 @@
-name: publish to nuget
+name: Publish to nuget
 on:
   push:
     branches:
@@ -17,11 +17,7 @@ jobs:
           dotnet-version: 6.0.x
 
       # Publish
-      - name: publish on version change
-        id: publish_nuget
-        uses: brandedoutcast/publish-nuget@v2
-        with:          
-          PROJECT_FILE_PATH: RabbitMQ-Messenger-Lib/RabbitMQ-Messenger-Lib/RabbitMQ-Messenger-Lib.csproj          
-          BUILD_CONFIGURATION: Release
-          NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          VERSION_REGEX: ^\s*<Version>(.*)<\/Version>\s*$        
+      - name: Package
+        run: dotnet pack -c Realse -o RabbitMQ-Messenger-Lib/RabbitMQ-Messenger-Lib/RabbitMQ-Messenger-Lib.csproj
+      - name: Publish
+        run: dotnet nuget push *.nupkg -k ${{secrets.NUGET_API_KEY}} -s https://api.nuget.org/v3/index.json
