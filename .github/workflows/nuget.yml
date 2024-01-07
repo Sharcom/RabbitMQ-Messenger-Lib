@@ -23,6 +23,6 @@ jobs:
 
       # Publish
       - name: Package
-        run: dotnet pack -c Realse -o RabbitMQ-Messenger-Lib/RabbitMQ-Messenger-Lib.csproj
+        run: dotnet pack RabbitMQ-Messenger-Lib\\RabbitMQ-Messenger-Lib.csproj -c Realse
       - name: Publish
         run: dotnet nuget push *.nupkg -k ${{secrets.NUGET_API_KEY}} -s https://api.nuget.org/v3/index.json --skip-duplicate
